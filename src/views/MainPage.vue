@@ -1,16 +1,13 @@
-<template>
-    <div class="about">
-      <h1>This is an Main page</h1>
-    </div>
-  </template>
-  
-  <style>
-  @media (min-width: 1024px) {
-    .about {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-    }
-  }
-  </style>
-  
+<script setup>
+  import "@aws-amplify/ui-vue/styles.css";
+
+  import { Amplify } from 'aws-amplify';
+  import outputs from '../../amplify_outputs.json';
+
+  Amplify.configure(outputs);
+</script>
+
+<template v-slot="{ user, signOut }">
+  <h1>Hello {{ user.username }}!</h1>
+  <button @click="signOut">Sign Out</button>
+</template>

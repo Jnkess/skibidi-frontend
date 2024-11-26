@@ -15,6 +15,7 @@
       "@/*": ["src/*"]
     },
     "types": ["node"],
+    "resolveJsonModule": true,
     "noEmit": true // Ensure this line is present
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"]

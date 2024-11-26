@@ -1,53 +1,80 @@
-import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
+import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
+import { postConfirmation } from "../auth/post-confirmation/resource";
+import { login } from "../functions/login/resource";
+import { register } from "../functions/register/resource";
+import { logout } from "../functions/logout/resource";
+import { chgpwd } from "../functions/chgpwd/resource";
+import { resetpwd } from "../functions/resetpwd/resource";
+import { createDeflate } from "zlib";
 
-/*== STEP 1 ===============================================================
-The section below creates a Todo database table with a "content" field. Try
-adding a new "isDone" field as a boolean. The authorization rule below
-specifies that any unauthenticated user can "create", "read", "update", 
-and "delete" any "Todo" records.
-=========================================================================*/
-const schema = a.schema({
-  Todo: a
-    .model({
-      content: a.string(),
-    })
-    .authorization((allow) => [allow.guest()]),
-});
-
+const schema = a
+  .schema({
+    register: a
+      .query()
+      .arguments({
+        username: a.string(),
+        email: a.string(),
+        password: a.string(),
+        createdAt: a.string(),
+      })
+      .returns(a.string())
+      .handler(a.handler.function(register))
+      .authorization((allow) => [
+        allow.publicApiKey(),
+      ]),
+    login: a
+      .query()
+      .arguments({
+        email: a.string(),
+        password: a.string(),
+      })
+      .returns(a.string())
+      .handler(a.handler.function(login))
+      .authorization((allow) => [
+        allow.publicApiKey(),
+      ]),
+    logout: a
+      .query()
+      .arguments({
+        email: a.string(),
+      })
+      .returns(a.string())
+      .handler(a.handler.function(logout))
+      .authorization((allow) => [
+        allow.publicApiKey(),
+      ]),
+    chgpwd: a
+      .query()
+      .arguments({
+        email: a.string(),
+        password: a.string(),
+        newPassword: a.string(),
+      })
+      .returns(a.string())
+      .handler(a.handler.function(chgpwd))
+      .authorization((allow) => [
+        allow.publicApiKey(),
+      ]),
+    resetpwd: a
+      .query()
+      .arguments({
+        email: a.string(),
+      })
+      .returns(a.string())
+      .handler(a.handler.function(resetpwd))
+      .authorization((allow) => [
+        allow.publicApiKey(),
+      ]),
+  })
+  .authorization((allow) => [allow.resource(postConfirmation)]);
 export type Schema = ClientSchema<typeof schema>;
 
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: 'iam',
+    defaultAuthorizationMode: "apiKey",
+    apiKeyAuthorizationMode: {
+      expiresInDays: 30,
+    },
   },
 });
-
-/*== STEP 2 ===============================================================
-Go to your frontend source code. From your client-side code, generate a
-Data client to make CRUDL requests to your table. (THIS SNIPPET WILL ONLY
-WORK IN THE FRONTEND CODE FILE.)
-
-Using JavaScript or Next.js React Server Components, Middleware, Server 
-Actions or Pages Router? Review how to generate Data clients for those use
-cases: https://docs.amplify.aws/gen2/build-a-backend/data/connect-to-API/
-=========================================================================*/
-
-/*
-"use client"
-import { generateClient } from "aws-amplify/data";
-import type { Schema } from "@/amplify/data/resource";
-
-const client = generateClient<Schema>() // use this Data client for CRUDL requests
-*/
-
-/*== STEP 3 ===============================================================
-Fetch records from the database and use them in your frontend component.
-(THIS SNIPPET WILL ONLY WORK IN THE FRONTEND CODE FILE.)
-=========================================================================*/
-
-/* For example, in a React component, you can use this snippet in your
-  function's RETURN statement */
-// const { data: todos } = await client.models.Todo.list()
-
-// return <ul>{todos.map(todo => <li key={todo.id}>{todo.content}</li>)}</ul>

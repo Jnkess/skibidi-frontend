@@ -44,6 +44,15 @@
 </template>
 
 <script>
+import { Amplify } from "aws-amplify"
+import { generateClient } from "aws-amplify/api"
+import outputs from "../../amplify_outputs.json"
+import { useUserStore } from "../stores/userStore";
+import { ComparisonOperator } from "@aws-sdk/client-dynamodb";
+
+Amplify.configure(outputs);
+const client = generateClient();
+
 export default {
   data() {
     return {
@@ -53,6 +62,10 @@ export default {
       loginEmail: '',
       loginPassword: ''
     };
+  },
+  setup() {
+    const userStore = useUserStore();
+    return { userStore };
   },
   computed: {
     isEmailValid() {
@@ -67,18 +80,36 @@ export default {
   methods: {
     register() {
       if (this.isEmailValid) {
-        // Handle registration logic here
-        console.log('User registered:', this.username, this.email, this.password);
-      } else {
-        console.log('Invalid email format');
+        try {
+          client.queries.register({
+            username: this.username,
+            email: this.email,
+            password: this.password
+          });
+        } catch (error) {
+          console.error('Error registering user:', error);
+          alert('Error registering user: ' + error.message);
+        }
       }
     },
-    login() {
-      // Handle login logic here
-      console.log('User logged in:', this.loginEmail, this.loginPassword);
+    async login () {
+      try {
+          const response = await client.queries.login({
+            email: this.loginEmail,
+            password: this.loginPassword
+          });
+          
+          this.userStore.setEmail(this.loginEmail);
+          this.userStore.setToken(response.data.slice(7, -1));
+          console.log('User logged in', this.userStore.email);
+          this.$router.push({ name: 'user' });
+        } catch (error) {
+          console.error('Error registering user:', error);
+          alert('Error registering user: ' + error.message);
+        }
     }
   }
-};
+};  
 </script>
 
 <style scoped>

@@ -18,7 +18,7 @@ export default defineConfig((env) => {
     // make the API path globally available in the client
     define: {
       __API_PATH__: JSON.stringify(serverAPIPath),
-    },
+ },
 
     plugins: [vue()],
     resolve: {
