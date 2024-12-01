@@ -50,9 +50,9 @@ export const handler: Schema["register"]["functionHandler"] = async (event) => {
     });
     await client.send(command);
 
-    return `Hello, ${username}! User has been added successfully.`;
+    return true;
   } catch (error) {
     console.error("Error saving user to DynamoDB", error);
-    throw new Error("Failed to add user to the database");
+    return false;
   }
 };

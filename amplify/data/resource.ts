@@ -17,7 +17,7 @@ const schema = a
         password: a.string(),
         createdAt: a.string(),
       })
-      .returns(a.string())
+      .returns(a.boolean())
       .handler(a.handler.function(register))
       .authorization((allow) => [
         allow.publicApiKey(),
@@ -28,7 +28,10 @@ const schema = a
         email: a.string(),
         password: a.string(),
       })
-      .returns(a.string())
+      .returns(a.customType({
+        token: a.string(),
+        username: a.string(),
+      }))
       .handler(a.handler.function(login))
       .authorization((allow) => [
         allow.publicApiKey(),
@@ -38,7 +41,7 @@ const schema = a
       .arguments({
         email: a.string(),
       })
-      .returns(a.string())
+      .returns(a.boolean())
       .handler(a.handler.function(logout))
       .authorization((allow) => [
         allow.publicApiKey(),
@@ -50,7 +53,7 @@ const schema = a
         password: a.string(),
         newPassword: a.string(),
       })
-      .returns(a.string())
+      .returns(a.boolean())
       .handler(a.handler.function(chgpwd))
       .authorization((allow) => [
         allow.publicApiKey(),
@@ -60,7 +63,7 @@ const schema = a
       .arguments({
         email: a.string(),
       })
-      .returns(a.string())
+      .returns(a.boolean())
       .handler(a.handler.function(resetpwd))
       .authorization((allow) => [
         allow.publicApiKey(),

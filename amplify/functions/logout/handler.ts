@@ -32,9 +32,9 @@ export const handler: Schema["logout"]["functionHandler"] = async (event) => {
     });
     await client.send(updateCommand);
 
-    return `Goodbye, ${email}! You have logged out successfully.`;
+    return true;
   } catch (error) {
     console.error("Error logging out user", error);
-    throw new Error("Failed to log out user");
+    return false;
   }
 };

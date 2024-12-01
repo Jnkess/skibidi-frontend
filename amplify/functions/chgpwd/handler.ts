@@ -7,7 +7,7 @@ import * as bcrypt from 'bcryptjs';
 const client = new DynamoDBClient({ region: env.AWS_REGION });
 const tableName = "users";
 
-export const handler: Schema["chgpwd"]["functionHandler"] = async (event): Promise<string | null> => {
+export const handler: Schema["chgpwd"]["functionHandler"] = async (event) => {
   const { email, password, newPassword } = event.arguments as { email: string, password: string, newPassword: string }; 
 
   try {
@@ -47,8 +47,8 @@ export const handler: Schema["chgpwd"]["functionHandler"] = async (event): Promi
     });
     await client.send(updateCommand);
     console.log("Password changed successfully");
-    return "Success";
+    return true;
   } catch (error) {
-    return "Error";
+    return false;
   }
 };

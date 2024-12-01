@@ -9,7 +9,7 @@ const client = new DynamoDBClient({ region: env.AWS_REGION });
 const tableName = "users";
 const jwtSecret = env.AWS_SESSION_TOKEN;
 
-export const handler = async (event: any) => {
+export const handler: Schema["login"]["functionHandler"] = async (event) => {
   const { email, password } = event.arguments as { email: string, password: string };
 
   try{
@@ -26,7 +26,7 @@ export const handler = async (event: any) => {
       throw new Error("Invalid email.");
     }
     const storedPassword = response.Items[0].password.S;
-
+    const username = response.Items[0].username.S;
     // Compare the provided password with the stored hashed password
     if (!storedPassword) {
       throw new Error("Stored password is undefined.");
@@ -51,11 +51,13 @@ export const handler = async (event: any) => {
       }
     });
     await client.send(updateCommand);
-    
+    console.log("Login successfull");
     return {
-      token: token,
+      token,
+      username,
     };
   } catch (error) {
+    console.error("Error logging in user", error);
     return null;
   }
 };

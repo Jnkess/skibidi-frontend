@@ -17,7 +17,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export const handler: Schema["resetpwd"]["functionHandler"] = async (event): Promise<string | null> => {
+export const handler: Schema["resetpwd"]["functionHandler"] = async (event) => {
   const { email, } = event.arguments as { email: string }; 
 
   // Step 1: Generate a temporary password
@@ -52,9 +52,9 @@ export const handler: Schema["resetpwd"]["functionHandler"] = async (event): Pro
     });
     await client.send(updateCommand);
     console.log("Password reset successfull");
-    return "Password reset successfull";
+    return true;
   } catch (error) {
-    return null;
-    throw new Error("Failed to reset password");
+    console.error("Failed to reset password");
+    return false;
   }
 };
