@@ -1,5 +1,4 @@
 import { defineBackend } from '@aws-amplify/backend';
-import { auth } from './auth/resource';
 import { data } from './data/resource';
 import { login } from './functions/login/resource';
 import { register } from './functions/register/resource';
@@ -10,7 +9,6 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as sns from "aws-cdk-lib/aws-sns";
 
 const backend = defineBackend({
-  auth,
   data,
   register,
   login,

@@ -1,5 +1,4 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
-import { postConfirmation } from "../auth/post-confirmation/resource";
 import { login } from "../functions/login/resource";
 import { register } from "../functions/register/resource";
 import { logout } from "../functions/logout/resource";
@@ -65,8 +64,7 @@ const schema = a
       .authorization((allow) => [
         allow.publicApiKey(),
       ]),
-  })
-  .authorization((allow) => [allow.resource(postConfirmation)]);
+  });
 export type Schema = ClientSchema<typeof schema>;
 
 export const data = defineData({
