@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport({
 });
 
 export const handler: Schema["resetpwd"]["functionHandler"] = async (event) => {
-  const { email, } = event.arguments as { email: string }; 
+  const { email } = event.arguments as { email: string }; 
 
   // Step 1: Generate a temporary password
   const tempPassword = randomBytes(8).toString("hex"); // Generate a random 8-character password
@@ -52,6 +52,16 @@ export const handler: Schema["resetpwd"]["functionHandler"] = async (event) => {
     });
     await client.send(updateCommand);
     console.log("Password reset successfull");
+
+    // Step 3: Send an email with the new password using Nodemailer
+    const mailOptions = {
+      from: "skibidi.app.test@gmail.com", // Replace with your email
+      to: email, // Recipient email
+      subject: "Password Reset Notification",
+      text: `Your password has been reset. Your new temporary password is: ${tempPassword}\n\nPlease log in and change your password immediately.`,
+    };
+
+    await transporter.sendMail(mailOptions);
     return true;
   } catch (error) {
     console.error("Failed to reset password");

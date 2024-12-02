@@ -5,7 +5,9 @@ import { register } from "../functions/register/resource";
 import { logout } from "../functions/logout/resource";
 import { chgpwd } from "../functions/chgpwd/resource";
 import { resetpwd } from "../functions/resetpwd/resource";
+import { checkToken } from "../functions/checkToken/resource";
 import { createDeflate } from "zlib";
+import { Token } from "aws-cdk-lib";
 
 const schema = a
   .schema({
@@ -31,6 +33,8 @@ const schema = a
       .returns(a.customType({
         token: a.string(),
         username: a.string(),
+        userId: a.string(),
+        email: a.string(),
       }))
       .handler(a.handler.function(login))
       .authorization((allow) => [
@@ -39,7 +43,7 @@ const schema = a
     logout: a
       .query()
       .arguments({
-        email: a.string(),
+        token: a.string(),
       })
       .returns(a.boolean())
       .handler(a.handler.function(logout))
@@ -52,6 +56,7 @@ const schema = a
         email: a.string(),
         password: a.string(),
         newPassword: a.string(),
+        token: a.string(),
       })
       .returns(a.boolean())
       .handler(a.handler.function(chgpwd))
@@ -65,6 +70,16 @@ const schema = a
       })
       .returns(a.boolean())
       .handler(a.handler.function(resetpwd))
+      .authorization((allow) => [
+        allow.publicApiKey(),
+      ]),
+    checkToken: a
+      .query()
+      .arguments({
+        token: a.string(),
+      })
+      .returns(a.boolean())
+      .handler(a.handler.function(checkToken))
       .authorization((allow) => [
         allow.publicApiKey(),
       ]),

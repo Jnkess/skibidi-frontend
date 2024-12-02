@@ -8,35 +8,42 @@ const router = createRouter({
     {
       path: '/',
       name: 'LoginRegister',
-      component: LoginRegisterView
+      component: LoginRegisterView,
     },
     {
       path: '/user',
       name: 'user',
-      component: () => import('../views/UserView.vue')
+      component: () => import('../views/UserView.vue'),
+      meta: { requiresAuth: true }
     },
     {
       path: '/admin',
       name: 'admin',
-      component: () => import('../views/AdminView.vue')
+      component: () => import('../views/AdminView.vue'),
+      meta: { requiresAuth: true }
     },
     {
       path: '/main',
       name: 'main',
-      component: () => import('../views/MainPage.vue')
+      component: () => import('../views/MainPage.vue'),
+      meta: { requiresAuth: true }
     }
   ]
 })
 
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore();
-  if (to.matched.some(record => record.meta.requiresAuth)) {
+  if (to.name === 'LoginRegister' && userStore.token) {
+    next(from);
+  } 
+  else if(to.matched.some(record => record.meta.requiresAuth)) {
     if (!userStore.token) {
       next({ name: 'LoginRegister' });
     } else {
-      next({ name: 'user' });
+      next();
     }
-  } else {
+  } 
+  else {
     next();
   }
 });

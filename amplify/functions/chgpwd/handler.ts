@@ -8,7 +8,24 @@ const client = new DynamoDBClient({ region: env.AWS_REGION });
 const tableName = "users";
 
 export const handler: Schema["chgpwd"]["functionHandler"] = async (event) => {
-  const { email, password, newPassword } = event.arguments as { email: string, password: string, newPassword: string }; 
+  const { email, password, newPassword, token } = event.arguments as { email: string, password: string, newPassword: string, token: string };  
+
+  // Get token from the database
+  const getTokenCommand = new ScanCommand ({
+    TableName: "sessions",
+    FilterExpression: "#token = :tokenValue",
+    ExpressionAttributeNames: {
+      "#token": "token",
+    },
+    ExpressionAttributeValues: {
+      ":tokenValue": { S: token },
+    },
+  });
+  const getTokenResponse = await client.send(getTokenCommand);
+
+  if (!getTokenResponse.Items ||  getTokenResponse.Items.length < 1) {
+    throw new Error("Invalid token.");
+  } 
 
   try {
     // Retrieve the user from DynamoDB

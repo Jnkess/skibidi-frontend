@@ -1,6 +1,7 @@
 <template>
   <div id="app">
     <router-view/>
+    <notifications position="bottom right" width="600" duration=5 max=5 />
   </div>
 </template>
 

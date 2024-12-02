@@ -23,6 +23,16 @@
       <form @submit.prevent="resetPassword">
         <button type="submit">Reset Password</button>
       </form>
+
+      <h2>Logout</h2>
+      <form @submit.prevent="logout">
+        <button type="submit">Logout</button>
+      </form>
+
+      <h2>Validate Token</h2>
+      <form @submit.prevent="checkToken">
+        <button type="submit">Validate Token</button>
+      </form>
     </div>
   </div>
 </template>
@@ -50,21 +60,39 @@ export default {
     return { userStore };
   },
   methods: {
-    changePassword() {
-      client.queries.chgpwd({
+    async changePassword() {
+      const response = await client.queries.chgpwd({
         email: this.userStore.email,
         password: this.currentPassword,
-        newPassword: this.newPassword
+        newPassword: this.newPassword,
+        token: this.userStore.token
       });
       console.log('Password changed successfuly');
-      alert('Password changed successfully!', this.userStore.email);
+      console.log(response);
     },
-    resetPassword() {
-      client.queries.resetpwd({
+    async resetPassword() {
+      const response = await client.queries.resetpwd({
         email: this.userStore.email,
       });
       console.log('Password reset email sent to', this.userStore.email);
-      alert('Password reset successfull!', this.userStore.email);
+      console.log(response);
+    },
+    async logout() {
+      const response = await client.queries.logout({
+        userId: this.userStore.userId,
+        token: this.userStore.token,
+      });
+      console.log('Logout successful');
+      console.log(response);
+      this.userStore.clearUser();
+      this.$router.push('/');
+    },
+    async checkToken() {
+      const response = await client.queries.checkToken({
+        token: this.userStore.token,
+      });
+      console.log('Token');
+      console.log(response.data);
     }
   }
 };

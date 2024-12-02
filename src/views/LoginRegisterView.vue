@@ -49,6 +49,7 @@ import { generateClient } from "aws-amplify/api"
 import outputs from "../../amplify_outputs.json"
 import { useUserStore } from "../stores/userStore";
 import { ComparisonOperator } from "@aws-sdk/client-dynamodb";
+import { notify } from "@kyvg/vue3-notification";
 
 Amplify.configure(outputs);
 const client = generateClient();
@@ -78,17 +79,43 @@ export default {
     }
   },
   methods: {
-    register() {
+    async register() {
       if (this.isEmailValid) {
         try {
-          client.queries.register({
+          const response = await client.queries.register({
             username: this.username,
             email: this.email,
             password: this.password
           });
+          if (response.data){
+            notify({
+              type: 'success',
+              title: `Success`,
+              text: `User ${ this.email } registered successfully.`,
+            });
+            this.username = '';
+            this.email = '';
+            this.password = '';
+          } else if (response.errors[0].message) {
+            notify({
+              type: 'error',
+              title: `Error`,
+              text: response.errors[0].message,
+            });
+          } else {
+            notify({
+              type: 'error',
+              title: `Error`,
+              text: `Error registering user.`,
+            });
+          }
         } catch (error) {
+          notify({
+              type: 'error',
+              title: `Error`,
+              text: `Error registering user.`,
+            });
           console.error('Error registering user:', error);
-          alert('Error registering user: ' + error.message);
         }
       }
     },
@@ -98,14 +125,40 @@ export default {
             email: this.loginEmail,
             password: this.loginPassword
           });
+          if (response.data.username && response.data.token && response.data.userId && response.data.email) {
+            this.userStore.setEmail(response.data.email);
+            this.userStore.setUsername(response.data.username);
+            this.userStore.setToken(response.data.token);
+            this.userStore.setUserId(response.data.userId);
+            console.log('User logged in', this.userStore.email);
+            this.$router.push({ name: 'user' });
+            notify({
+              type: 'success',
+              title: `Success`,
+              text: `User ${ response.data.email } logged in successfully.`,
+            });
+          } else if (response.errors[0].message) {
+            notify({
+              type: 'error',
+              title: `Error`,
+              text: response.errors[0].message,
+            });
+          } else {
+            notify({
+              type: 'error',
+              title: `Error`,
+              text: `Error logging in.`,
+            });
+          }
+
           
-          this.userStore.setEmail(this.loginEmail);
-          this.userStore.setToken(response.data.slice(7, -1));
-          console.log('User logged in', this.userStore.email);
-          this.$router.push({ name: 'user' });
         } catch (error) {
-          console.error('Error registering user:', error);
-          alert('Error registering user: ' + error.message);
+          console.error('Error logging in.');
+          notify({
+              type: 'error',
+              title: `Error`,
+              text: `Error logging in.`,
+            });
         }
     }
   }
@@ -129,7 +182,7 @@ export default {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background: url('../src/assets/ site-background.jpg') no-repeat center center fixed;
+  background: none;
   background-size: cover;
   text-align: center;
 }
