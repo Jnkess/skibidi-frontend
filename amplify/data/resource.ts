@@ -6,6 +6,7 @@ import { logout } from "../functions/logout/resource";
 import { chgpwd } from "../functions/chgpwd/resource";
 import { resetpwd } from "../functions/resetpwd/resource";
 import { checkToken } from "../functions/checkToken/resource";
+import { resetpwd2 } from "../functions/resetpwd2/resource";
 import { createDeflate } from "zlib";
 import { Token } from "aws-cdk-lib";
 
@@ -67,6 +68,7 @@ const schema = a
       .query()
       .arguments({
         email: a.string(),
+        baseUrl: a.string(),
       })
       .returns(a.boolean())
       .handler(a.handler.function(resetpwd))
@@ -80,6 +82,17 @@ const schema = a
       })
       .returns(a.boolean())
       .handler(a.handler.function(checkToken))
+      .authorization((allow) => [
+        allow.publicApiKey(),
+      ]),
+      resetpwd2: a
+      .query()
+      .arguments({
+        resetKey: a.string(),
+        newPassword: a.string(),
+      })
+      .returns(a.boolean())
+      .handler(a.handler.function(resetpwd2))
       .authorization((allow) => [
         allow.publicApiKey(),
       ]),

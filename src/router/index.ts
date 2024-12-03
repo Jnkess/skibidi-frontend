@@ -14,37 +14,78 @@ const router = createRouter({
       path: '/user',
       name: 'user',
       component: () => import('../views/UserView.vue'),
-      meta: { requiresAuth: true }
     },
     {
       path: '/admin',
       name: 'admin',
       component: () => import('../views/AdminView.vue'),
-      meta: { requiresAuth: true }
     },
     {
       path: '/main',
       name: 'main',
       component: () => import('../views/MainPage.vue'),
-      meta: { requiresAuth: true }
+    },
+    {
+      path: '/resetPwd',
+      name: 'resetPwd',
+      component: () => import('../views/ResetPwdView.vue'),
+    },
+    {
+      path: '/resetPwd2',
+      name: 'resetPwd2',
+      component: () => import('../views/ResetPwdView2.vue'),
     }
   ]
 })
 
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore();
-  if (to.name === 'LoginRegister' && userStore.token) {
-    next(from);
-  } 
-  else if(to.matched.some(record => record.meta.requiresAuth)) {
-    if (!userStore.token) {
+  if (to.name === 'resetPwd') {
+    next();
+  }
+  else if (to.name === 'resetPwd2') {
+    if(!to.query.key) {
       next({ name: 'LoginRegister' });
-    } else {
+    }
+    const queryKey = to.query.key;
+    userStore.setResetCode(queryKey as string);
+    next();
+  }
+  else if (to.name === 'LoginRegister') {
+    if (userStore.token) {
+      const validateTokenResponse = userStore.validateToken();
+      if (!validateTokenResponse) {
+        userStore.clearUser();
+        next({ name: 'LoginRegister' });
+        throw new Error('Invalid token');
+      }
+      else {
+        next({ name: 'user' });
+      }
+    }
+    else {
       next();
     }
-  } 
+  }
+  else if (userStore.token) {
+    const validateTokenResponse = userStore.validateToken();
+    if (!validateTokenResponse) {
+      userStore.clearUser();
+      next({ name: 'LoginRegister' });
+      throw new Error('Invalid token');
+    }
+    else {
+      if (to.name === 'LoginRegister') {
+        next(from);
+      } 
+      else {
+        next();
+      }
+    } 
+  }
   else {
-    next();
+    console.log("no token");
+    next({ name: 'LoginRegister' });
   }
 });
 

@@ -4,17 +4,17 @@
     <h1>{{ this.userStore.email }}</h1>
     <div class="auth-cards">
       <div class="auth-card">
-        <h2>Change Password</h2>
+        <h2>Reset Password</h2>
         <form @submit.prevent="changePassword">
           <div>
-            <label for="current-password">Current Password:</label>
-            <input type="password" id="current-password" v-model="currentPassword" required>
+            <label for="new-password">New Password:</label>
+            <input type="password" id="current-password" v-model="newPassword" required>
           </div>
           <div>
-            <label for="new-password">New Password:</label>
-            <input type="password" id="new-password" v-model="newPassword" required>
+            <label for="new-password-confirm">Confirm Password:</label>
+            <input type="password" id="new-password" v-model="newPasswordConfirm" required>
           </div>
-          <CButton type="submit" color="primary" shape="rounded-0" variant="outline" disabled>Change Password</CButton>
+          <button type="submit" :disabled="!isPasswordValid || !arePasswordsIdentical">Reset Password</button>
         </form>
       </div>
     </div>
@@ -35,8 +35,8 @@ export default {
   data() {
     return {
       activeTab: 'general',
-      currentPassword: '',
-      newPassword: ''
+      newPassword: '',
+      newPasswordConfirm: ''
     };
   },
   setup() {
@@ -46,25 +46,35 @@ export default {
   computed: {
     isPasswordValid() {
       const passwordPattern = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&]).{8,20}$/;
-      return this.password.length >= 8 && passwordPattern.test(this.password);
+      return this.newPassword.length >= 8 && passwordPattern.test(this.newPassword);
     },
     arePasswordsIdentical() {
       return this.newPassword === this.newPasswordConfirm;
     },
-    disabled() {
-      return this.arePasswordsIdentical || !this.isPasswordValid;
-    }
   },
   methods: {
     async changePassword() {
-      const response = await client.queries.chgpwd({
-        email: this.userStore.email,
-        password: this.currentPassword,
+      const response = await client.queries.resetpwd2({
+        resetKey: this.userStore.resetCode,
         newPassword: this.newPassword,
-        token: this.userStore.token
       });
       console.log('Password changed successfuly');
       console.log(response);
+      if (response.data){
+        this.userStore.clearUser();
+        notify({
+              type: 'success',
+              title: `Success`,
+              text: `Password reset successfull.`,
+            });
+        this.$router.push('/');
+      } else {
+        notify({
+              type: 'error',
+              title: `Error`,
+              text: `Password reset failed.`,
+            });
+      }
     },
   }
 };
@@ -162,5 +172,46 @@ input {
   box-sizing: border-box;
   font-family: "Raleway", sans-serif;
   margin-bottom: 20px;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  background-color: #919191;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-family: "Raleway", sans-serif;
+}
+
+button:hover:not(:disabled) {
+  background-color: #b9b8b8;
+}
+
+button:hover(:disabled) {
+  background-color: #b9b8b8;
+}
+
+button:disabled {
+  position: relative;
+}
+
+button:disabled::after {
+  content: 'Please fill out all fields correctly';
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #ffcccc;
+  color: #ff0000;
+  padding: 5px;
+  border-radius: 5px;
+  font-size: 0.8em;
+  white-space: nowrap;
+  display: none;
+}
+
+button:disabled:hover::after {
+  display: block;
 }
 </style>

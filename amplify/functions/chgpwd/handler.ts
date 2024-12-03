@@ -10,6 +10,14 @@ const tableName = "users";
 export const handler: Schema["chgpwd"]["functionHandler"] = async (event) => {
   const { email, password, newPassword, token } = event.arguments as { email: string, password: string, newPassword: string, token: string };  
 
+  // Validate password
+  const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&]).{8,20}$/;
+  if (!passwordRegex.test(newPassword)) {
+    throw new Error("Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.");
+  }
+  // Hash the password
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
   // Get token from the database
   const getTokenCommand = new ScanCommand ({
     TableName: "sessions",
@@ -57,9 +65,9 @@ export const handler: Schema["chgpwd"]["functionHandler"] = async (event) => {
       Key: {
         id: response.Items[0].id 
       },
-      UpdateExpression: "set password = :newPassword",
+      UpdateExpression: "set password = :hashedPassword",
       ExpressionAttributeValues: {
-        ":password": { S: newPassword }
+        ":hashedPassword": { S: hashedPassword }
       }
     });
     await client.send(updateCommand);

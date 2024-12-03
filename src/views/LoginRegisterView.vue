@@ -38,6 +38,7 @@
           </div>
           <button type="submit">Login</button>
         </form>
+        <a href="/resetPwd">Forgot password?</a>
       </div>
     </div>
   </div>
@@ -61,7 +62,7 @@ export default {
       email: '',
       password: '',
       loginEmail: '',
-      loginPassword: ''
+      loginPassword: '',
     };
   },
   setup() {
@@ -74,7 +75,7 @@ export default {
       return emailPattern.test(this.email);
     },
     isPasswordValid() {
-      const passwordPattern = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/;
+      const passwordPattern = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&]).{8,20}$/;
       return this.password.length >= 8 && passwordPattern.test(this.password);
     }
   },
@@ -170,11 +171,13 @@ export default {
 @import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
 
 .title {
-  height: 10vh;
+  height: 3vh;
   display: flex;
   justify-content: center;
   align-items: center;
   font-family: "Raleway", sans-serif;
+  border-bottom: 1px solid #000000;
+  margin-bottom: 5vh;
 }
 .auth-container {
   display: flex;
@@ -208,16 +211,13 @@ export default {
 }
 
 h1 {
-  margin-bottom: 20px;
   font-family: "Railway", sans-serif;
-  border-bottom: 1px solid #000000;
 }
 
 h2 {
   margin-bottom: 100px;
   font-size: 5rem;
   font-family: "Roboto", sans-serif;
-  border-bottom: 1px solid #000000;
   border-top: 1px solid #000000;
 }
 

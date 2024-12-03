@@ -4,17 +4,14 @@
     <h1>{{ this.userStore.email }}</h1>
     <div class="auth-cards">
       <div class="auth-card">
-        <h2>Change Password</h2>
-        <form @submit.prevent="changePassword">
+        <h2>Send verification email</h2>
+        <form @submit.prevent="resetPassword">
           <div>
-            <label for="current-password">Current Password:</label>
-            <input type="password" id="current-password" v-model="currentPassword" required>
+            <label for="new-password">Email:</label>
+            <input type="text" id="email" v-model="email" required>
+            {{ test }}
           </div>
-          <div>
-            <label for="new-password">New Password:</label>
-            <input type="password" id="new-password" v-model="newPassword" required>
-          </div>
-          <CButton type="submit" color="primary" shape="rounded-0" variant="outline" disabled>Change Password</CButton>
+          <button type="submit" :disabled="!isEmailValid">Send</button>
         </form>
       </div>
     </div>
@@ -30,13 +27,12 @@ import { useUserStore } from "../stores/userStore";
 
 Amplify.configure(outputs);
 const client = generateClient();
+console.log(import.meta.env.VITE_AMPLIFY_emailUser);
 
 export default {
   data() {
     return {
-      activeTab: 'general',
-      currentPassword: '',
-      newPassword: ''
+      email: '',
     };
   },
   setup() {
@@ -44,26 +40,29 @@ export default {
     return { userStore };
   },
   computed: {
-    isPasswordValid() {
-      const passwordPattern = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&]).{8,20}$/;
-      return this.password.length >= 8 && passwordPattern.test(this.password);
+    url(){
+      return window.location.origin.toString();
     },
-    arePasswordsIdentical() {
-      return this.newPassword === this.newPasswordConfirm;
+    isEmailValid() {
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailPattern.test(this.email);
     },
-    disabled() {
-      return this.arePasswordsIdentical || !this.isPasswordValid;
+    test() {
+      return process.env.AMPLIFY_emailUser;
     }
   },
   methods: {
-    async changePassword() {
-      const response = await client.queries.chgpwd({
-        email: this.userStore.email,
-        password: this.currentPassword,
-        newPassword: this.newPassword,
-        token: this.userStore.token
+    async resetPassword() {
+      const response = await client.queries.resetpwd({
+        email: this.email,
+        baseUrl: this.url,
       });
-      console.log('Password changed successfuly');
+      notify({
+        type: 'success',
+        title: `Success`,
+        text: `Verification email sent to ${this.email}`,
+      });
+      console.log('Password reset email sent to', this.userStore.email);
       console.log(response);
     },
   }
@@ -162,5 +161,46 @@ input {
   box-sizing: border-box;
   font-family: "Raleway", sans-serif;
   margin-bottom: 20px;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  background-color: #919191;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-family: "Raleway", sans-serif;
+}
+
+button:hover:not(:disabled) {
+  background-color: #b9b8b8;
+}
+
+button:hover(:disabled) {
+  background-color: #b9b8b8;
+}
+
+button:disabled {
+  position: relative;
+}
+
+button:disabled::after {
+  content: 'Please fill out all fields correctly';
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #ffcccc;
+  color: #ff0000;
+  padding: 5px;
+  border-radius: 5px;
+  font-size: 0.8em;
+  white-space: nowrap;
+  display: none;
+}
+
+button:disabled:hover::after {
+  display: block;
 }
 </style>

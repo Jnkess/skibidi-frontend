@@ -1,28 +1,15 @@
 import type { Schema } from "../../data/resource"
 import { DynamoDBClient, UpdateItemCommand, ScanCommand } from "@aws-sdk/client-dynamodb";
-import nodemailer from "nodemailer";
 import { randomBytes } from "crypto";
-import { hash } from "bcryptjs";
 import { env } from "$amplify/env/post-confirmation";
+import nodemailer from "nodemailer";
+import { secret } from '@aws-amplify/backend';
 
 const client = new DynamoDBClient({ region: env.AWS_REGION });
 const tableName = "users";
 
-// Set up Nodemailer transporter
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: "skibidi.app.test@gmail.com", // Replace with your email address
-    pass: "jD123456!", // Replace with your email password (or app-specific password)
-  },
-});
-
 export const handler: Schema["resetpwd"]["functionHandler"] = async (event) => {
-  const { email } = event.arguments as { email: string }; 
-
-  // Step 1: Generate a temporary password
-  const tempPassword = randomBytes(8).toString("hex"); // Generate a random 8-character password
-  const hashedPassword = await hash(tempPassword, 10); // Hash the password for storage
+  const { email, baseUrl } = event.arguments as { email: string, baseUrl: string }; 
 
   try {
     // Retrieve the user from DynamoDB
@@ -37,34 +24,55 @@ export const handler: Schema["resetpwd"]["functionHandler"] = async (event) => {
     if (!response.Items ||  response.Items.length < 1) {
       throw new Error("Invalid email.");
     }
-    
-    
-    // Reset password
+
+    // Generate a unique key for password reset
+    const resetKey = randomBytes(6).toString("hex");
+      
+    // Save the key to the user's record in the database
     const updateCommand = new UpdateItemCommand({
       TableName: tableName,
       Key: {
         id: response.Items[0].id 
       },
-      UpdateExpression: "SET password = :password",
+      UpdateExpression: "set resetKey = :resetKey",
       ExpressionAttributeValues: {
-        ":password": { S: hashedPassword },
-      },
+        ":resetKey": { S: resetKey }
+      }
     });
     await client.send(updateCommand);
-    console.log("Password reset successfull");
+    console.log("ResetKey set successfully");
 
-    // Step 3: Send an email with the new password using Nodemailer
+    // Step 1: Create a transporter
+    let transporter = nodemailer.createTransport({
+        host: "s166.cyber-folks.pl",
+        port: 465,
+        secure: true,
+        auth: {
+            user: secret('emailUser').toString(),
+            pass: secret('emailPass').toString()
+        }
+    });
+    // Step 2: Configure the email options
     const mailOptions = {
-      from: "skibidi.app.test@gmail.com", // Replace with your email
-      to: email, // Recipient email
-      subject: "Password Reset Notification",
-      text: `Your password has been reset. Your new temporary password is: ${tempPassword}\n\nPlease log in and change your password immediately.`,
+      from: '"Skibidi-app" <skibidi-app@107.pl>',
+      to: email,
+      subject: "Password Reset Request",
+      html: `
+        <p>Hi,</p>
+        <p>You requested a password reset.</p>
+        <p>Click <a href="${baseUrl}/resetPwd2?key=${resetKey}">here</a> to reset your password.</p>
+        <p>If you did not request this, please ignore this email.</p>
+      `,
     };
 
-    await transporter.sendMail(mailOptions);
+    // Step 3: Send the email
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Email sent: %s", info.messageId);
     return true;
-  } catch (error) {
-    console.error("Failed to reset password");
-    return false;
+  }
+  catch (error) {
+    console.log("erro : ", error);
+    throw new Error(`Error:, ${error}`);
   }
 };

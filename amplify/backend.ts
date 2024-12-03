@@ -7,6 +7,7 @@ import { logout } from './functions/logout/resource';
 import { chgpwd } from './functions/chgpwd/resource';
 import { resetpwd } from './functions/resetpwd/resource';
 import { checkToken } from './functions/checkToken/resource';
+import { resetpwd2 } from './functions/resetpwd2/resource';
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as sns from "aws-cdk-lib/aws-sns";
 
@@ -19,6 +20,7 @@ const backend = defineBackend({
   chgpwd,
   resetpwd,
   checkToken,
+  resetpwd2,
 });
 
 const registerLambda = backend.register.resources.lambda
@@ -27,6 +29,7 @@ const logoutLambda = backend.logout.resources.lambda
 const chgpwdLambda = backend.chgpwd.resources.lambda
 const resetpwdLambda = backend.resetpwd.resources.lambda
 const checkTokenLambda = backend.checkToken.resources.lambda
+const resetpwd2Lambda = backend.resetpwd2.resources.lambda
 
 const topicStackRegister = backend.createStack("register")
 const topicRegister = new sns.Topic(topicStackRegister, "TopicRegister", {
@@ -52,7 +55,10 @@ const topicStackCheckToken = backend.createStack("checkToken")
 const topicCheckToken = new sns.Topic(topicStackLogin, "TopicCheckToken", {
   displayName: "digest",
 })
-
+const topicStackResetPwd2 = backend.createStack("resetpwd2")
+const topicResetPwd2 = new sns.Topic(topicStackLogin, "TopicResetpwd2", {
+  displayName: "digest",
+})
 
 const statement = new iam.PolicyStatement({
   sid: "AllowDynamoDBAccess",
@@ -76,3 +82,4 @@ logoutLambda.addToRolePolicy(statement)
 chgpwdLambda.addToRolePolicy(statement)
 resetpwdLambda.addToRolePolicy(statement)
 checkTokenLambda.addToRolePolicy(statement)
+resetpwd2Lambda.addToRolePolicy(statement)

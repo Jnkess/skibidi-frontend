@@ -14,7 +14,7 @@ export const handler: Schema["register"]["functionHandler"] = async (event) => {
     throw new Error("Invalid email format.");
   }
   // Validate password
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&]).{8,20}$/;
   if (!passwordRegex.test(password)) {
     throw new Error("Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.");
   }
