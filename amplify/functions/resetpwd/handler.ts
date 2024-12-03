@@ -11,6 +11,9 @@ const tableName = "users";
 export const handler: Schema["resetpwd"]["functionHandler"] = async (event) => {
   const { email, baseUrl } = event.arguments as { email: string, baseUrl: string }; 
 
+  const emailUser = process.env.AMPLIFY_EMAIL_USER;
+  const emailPass = process.env.AMPLIFY_EMAIL_PASS;
+
   try {
     // Retrieve the user from DynamoDB
     const command = new ScanCommand ({
@@ -48,8 +51,8 @@ export const handler: Schema["resetpwd"]["functionHandler"] = async (event) => {
         port: 465,
         secure: true,
         auth: {
-            user: secret('emailUser').toString(),
-            pass: secret('emailPass').toString()
+            user: emailUser,
+            pass: emailPass,
         }
     });
     // Step 2: Configure the email options

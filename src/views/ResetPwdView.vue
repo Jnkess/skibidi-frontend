@@ -27,7 +27,6 @@ import { useUserStore } from "../stores/userStore";
 
 Amplify.configure(outputs);
 const client = generateClient();
-console.log(import.meta.env.VITE_AMPLIFY_emailUser);
 
 export default {
   data() {
